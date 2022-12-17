@@ -180,11 +180,15 @@ class SystemManager : public SystemGroup, public std::enable_shared_from_this<Sy
   void Configure(EntityManager& entityManager);
   void Update(EntityManager& entityManager);
 
+  template <typename T>
+  typename std::enable_if<std::is_base_of<System<T>, T>::value, std::shared_ptr<T>>::type Get();
+
  private:
   void Reset();
   bool GetNext(std::shared_ptr<BaseSystem>& next);
   void OnSystemFinished(BaseSystem::Family family);
   void OnSystemTryAgainLater(BaseSystem::Family family);
+  std::shared_ptr<BaseSystem> Get(BaseSystem::Family family);
 
   std::mutex locker;
   std::set<BaseSystem::Family> runnable_systems_;

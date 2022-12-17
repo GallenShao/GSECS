@@ -107,3 +107,9 @@ typename std::enable_if<std::is_base_of<gs::SystemThread<T>, T>::value, void>::t
 gs::SystemManager::SetMaxThreadCount(int count) {
   system_traverser_->SetMaxThreadCount(T::family(), count);
 }
+
+template <typename T>
+typename std::enable_if<std::is_base_of<gs::System<T>, T>::value, std::shared_ptr<T>>::type
+gs::SystemManager::Get() {
+  return std::static_pointer_cast<T>(Get(all_systems_[T::family()]));
+}

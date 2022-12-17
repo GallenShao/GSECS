@@ -127,4 +127,12 @@ void SystemManager::SetMaxThreadCount(int count) {
   SetMaxThreadCount<DefaultThread>(count);
 }
 
+std::shared_ptr<BaseSystem> SystemManager::Get(BaseSystem::Family family) {
+  if (all_systems_mask_.test(family) && family < all_systems_.size()) {
+    return all_systems_[family];
+  } else {
+    return nullptr;
+  }
+}
+
 }  // namespace gs
