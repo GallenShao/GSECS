@@ -9,15 +9,14 @@
 
 #pragma once
 
+#include "thread.hpp"
 #include "system.hpp"
+#include "component.hpp"
 #include "entity.h"
 
 namespace gs {
 
 
 
-class Component {
-
-};
 
 }

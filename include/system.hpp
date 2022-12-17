@@ -23,12 +23,6 @@ gs::BaseSystem::Family gs::System<T>::GetFamily() {
 }
 
 template <typename T>
-gs::SystemThreadBase::Family gs::SystemThread<T>::family() {
-  static Family family = family_count_++;
-  return family;
-}
-
-template <typename T>
 typename std::enable_if<std::is_base_of<gs::System<T>, T>::value, gs::SystemGroupBuilder>::type
 gs::SystemGroup::AddSystem() {
   assert(editable_);
