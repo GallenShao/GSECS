@@ -164,3 +164,13 @@ TEST(SystemGroupTest, GroupedSystemGroupWrongUsage12) {
   manager.AddSystem<BSystem>();
   EXPECT_DEATH(manager.AddSystemGroup(group_0).WhichDependsOn<BSystem>().And(group_0), "");
 }
+
+// add system group with thread limit but systems in group have different thread request
+TEST(SystemGroupTest, GroupedSystemGroupWrongUsage13) {
+  gs::SystemGroup manager;
+  gs::SystemGroup group_wrapper;
+  gs::SystemGroup group_0;
+  group_0.AddSystem<ASystem>().WithThread<AThread>();
+  group_wrapper.AddSystemGroup(group_0).WithThread<AThread>();
+  EXPECT_DEATH(manager.AddSystemGroup(group_wrapper).WithThread<BThread>(), "");
+}

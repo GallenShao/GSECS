@@ -69,7 +69,7 @@ gs::SystemGroupBuilder::WithThread() {
   for (auto& system_family : current_) {
     auto& system = group_->all_systems_[system_family];
     assert(system != nullptr);
-    assert(system->initializer_family_ == DefaultThread::family());
+    assert(system->initializer_family_ == initializer_family || system->initializer_family_ == DefaultThread::family());
     system->initializer_family_ = initializer_family;
   }
   return *this;

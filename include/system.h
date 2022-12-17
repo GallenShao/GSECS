@@ -27,6 +27,14 @@
 #define assert(e)
 #endif
 
+/**
+ * ECS的System部分实现，功能：
+ *   1. System支持多线程运行
+ *   2. System支持绑定指定类型的Thread，Thread可自定义初始化、销毁函数
+ *   3. 支持自定义System执行时依赖
+ *
+ * 关键对外类：SystemManager、SystemGroup、System、SystemThread
+ */
 namespace gs {
 
 #define MAX_SYSTEM_COUNT 256
@@ -48,6 +56,21 @@ class SystemThreadBase {
 
 typedef std::function<std::shared_ptr<SystemThreadBase>()> ThreadCreator;
 
+/**
+ * Example:
+ *
+ * class OpenGLThread : public gs::SystemThread<OpenGLThread> {
+ * public:
+ *   void OnInit() override {
+ *     // Init OpenGL Context
+ *     std::cout << "OpenGLThread OnInit" << std::endl;
+ *   }
+ *   void OnDestroy() override {
+ *     // Destroy OpenGL Context
+ *     std::cout << "OpenGLThread OnDestroy" << std::endl;
+ *   }
+ * };
+ */
 template <typename T>
 class SystemThread : public SystemThreadBase {
  public:
@@ -78,6 +101,15 @@ class BaseSystem : public std::enable_shared_from_this<BaseSystem> {
   friend class SystemGroupBuilderItem;
 };
 
+/**
+ * Example:
+ *
+ * class ASystem : public gs::System<ASystem> {
+ *   void Update(gs::EntityManager& manager) override {
+ *     std::cout << "ASystem Update" << std::endl;
+ *   }
+ * };
+ */
 template <typename T>
 class System : public BaseSystem {
  public:
@@ -120,6 +152,14 @@ class SystemGroupBuilder {
   friend class SystemGroup;
 };
 
+/**
+ * Example：
+ *
+ * gs::SystemGroup group;
+ * group.AddSystem<ASystem>();
+ * group.AddSystem<BSystem>();
+ * group.AddSystem<CSystem>().WhichDependsOn<BSystem>();
+ */
 class SystemGroup {
  public:
   template <typename T>
@@ -139,6 +179,28 @@ class SystemGroup {
   friend class SystemGroupBuilderItem;
 };
 
+/**
+ * Example:
+ *
+ * auto manager = gs::SystemManager::MakeFromTraverser<gs::SingleThreadTraverser>();
+ * manager->AddSystem<ASystem>().WithThread<DummyThread>();
+
+ * gs::SystemGroup group_0;
+ * group_0.AddSystem<BSystem>();
+ * group_0.AddSystem<CSystem>();
+ * group_0.AddSystem<DSystem>().WhichDependsOn<BSystem>();
+ * manager->AddSystemGroup(group_0).WithThread<OpenGLThread>().WhichDependsOn<ASystem>();
+
+ * manager->AddSystem<ESystem>();
+ * manager->AddSystem<FSystem>().WhichDependsOn(group_0).And<ESystem>();
+
+ * manager->SetMaxThreadCount<DummyThread>(2);
+ * manager->SetMaxThreadCount<OpenGLThread>(1);
+
+ * gs::EntityManager dummy;
+ * manager->Configure(dummy);
+ * manager->Update(dummy);
+ */
 class SystemManager : public SystemGroup, public std::enable_shared_from_this<SystemManager> {
  public:
   template <typename T, typename... Args>

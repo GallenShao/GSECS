@@ -15,3 +15,6 @@ class CSystem : public gs::System<CSystem> {};
 class DSystem : public gs::System<DSystem> {};
 class ESystem : public gs::System<ESystem> {};
 class FSystem : public gs::System<FSystem> {};
+
+class AThread : public gs::SystemThread<AThread> {};
+class BThread : public gs::SystemThread<BThread> {};
