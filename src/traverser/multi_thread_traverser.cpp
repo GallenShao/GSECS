@@ -13,8 +13,7 @@
 #define DEFAULT_custom_thread_COUNT 1
 
 gs::MultiThreadTraverser::MultiThreadTraverser() {
-  all_threads_.resize(1);
-  all_threads_[0].reserve(DEFAULT_default_thread_COUNT);
+  MultiThreadTraverser::SetMaxThreadCount(DefaultThread::family(), DEFAULT_default_thread_COUNT);
 }
 
 gs::MultiThreadTraverser::~MultiThreadTraverser() {

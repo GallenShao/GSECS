@@ -41,6 +41,7 @@ class ASystem : public gs::System<ASystem>, public ThreadChecker<ASystem> {
  public:
   void Update(gs::EntityManager& manager) override {
     CheckThread();
+    assert(E_called);
     A_called = true;
     std::cout << "ASystem runs on " << thread_name << thread_index << std::endl;
   }
@@ -49,6 +50,7 @@ class BSystem : public gs::System<BSystem>, public ThreadChecker<BSystem> {
  public:
   void Update(gs::EntityManager& manager) override {
     CheckThread();
+    assert(E_called);
     B_called = true;
     std::cout << "BSystem runs on " << thread_name << thread_index << std::endl;
   }
@@ -57,6 +59,7 @@ class CSystem : public gs::System<CSystem>, public ThreadChecker<CSystem> {
  public:
   void Update(gs::EntityManager& manager) override {
     CheckThread();
+    assert(E_called);
     assert(A_called);
     C_called = true;
     std::cout << "CSystem runs on " << thread_name << thread_index << std::endl;
@@ -68,6 +71,7 @@ class DSystem : public gs::System<DSystem>, public ThreadChecker<DSystem> {
     CheckThread();
     assert(B_called);
     assert(C_called);
+    assert(E_called);
     D_called = true;
     std::cout << "DSystem runs on " << thread_name << thread_index << std::endl;
   }
@@ -84,6 +88,7 @@ class FSystem : public gs::System<FSystem>, public ThreadChecker<FSystem> {
  public:
   void Update(gs::EntityManager& manager) override {
     CheckThread();
+    assert(B_called);
     assert(C_called);
     assert(E_called);
     F_called = true;
@@ -135,17 +140,25 @@ void ResetTest() {
 TEST(SystemManagerTest, SingleThreadTraverser) {
   ResetTest();
   auto manager = gs::SystemManager::MakeFromTraverser<gs::SingleThreadTraverser>();
+  manager->AddSystem<ESystem>();
   manager->AddSystem<ASystem>();
   manager->AddSystem<BSystem>();
   manager->AddSystem<CSystem>().WhichDependsOn<ASystem>();
   manager->AddSystem<DSystem>().WhichDependsOn<BSystem>().And<CSystem>();
-  manager->AddSystem<ESystem>();
   manager->AddSystem<FSystem>().WhichDependsOn<CSystem>().And<ESystem>();
 
   gs::EntityManager dummy;
   manager->Update(dummy);
 }
 
+//  group_0
+//        ----------
+//        | A -> C | \    / --> D
+// E ---> |        |  ----
+//  \     | B      | /    \
+//   \    ----------       ---> F
+//    \                   /
+//     -------------------
 TEST(SystemManagerTest, MultiThreadTraverser) {
   ResetTest();
   auto manager = gs::SystemManager::MakeFromTraverser<gs::MultiThreadTraverser>();
@@ -180,6 +193,14 @@ TEST(SystemManagerTest, MultiThreadTraverser) {
   EXPECT_EQ(open_gl_thread_count, 0);
 }
 
+//  group_0
+//        ----------
+//        | A -> C | \    / --> D
+// E ---> |        |  ----
+//  \     | B      | /    \
+//   \    ----------       ---> F
+//    \                   /
+//     -------------------
 TEST(SystemManagerTest, MultiThreadTraverser2) {
   ResetTest();
   auto manager = gs::SystemManager::MakeFromTraverser<gs::MultiThreadTraverser>();
