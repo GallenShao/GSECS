@@ -5,6 +5,21 @@ namespace gs {
 BaseSystem::Family BaseSystem::family_count_ = 0;
 SystemThreadBase::Family SystemThreadBase::family_count_ = 0;
 
+SystemGroupBuilder SystemGroup::AddSystem(BaseSystem::Family family, std::shared_ptr<BaseSystem> system) {
+  assert(editable_);
+  if (all_systems_.size() <= family) {
+    all_systems_.resize(family + 1);
+  }
+  assert(all_systems_[family] == nullptr);
+  all_systems_[family] = std::move(system);
+  all_systems_mask_.set(family);
+  start_node_families_.insert(family);
+
+  std::set<BaseSystem::Family> current;
+  current.insert(family);
+  return {this, current};
+}
+
 SystemGroupBuilder SystemGroup::AddSystemGroup(SystemGroup& group) {
   assert(!group.all_systems_.empty());
   assert((all_systems_mask_ & group.all_systems_mask_).none());

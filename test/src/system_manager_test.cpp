@@ -234,3 +234,88 @@ TEST(SystemManagerTest, MultiThreadTraverser2) {
   EXPECT_EQ(dummy_thread_count, 0);
   EXPECT_EQ(open_gl_thread_count, 0);
 }
+
+class CountThread : public gs::SystemThread<CountThread> {};
+
+static int count;
+template <int T>
+class CountSystem : public gs::System<CountSystem<T>> {
+ public:
+  void Update(gs::EntityManager& manager) override {
+    count++;
+  }
+};
+
+// thread test
+TEST(SystemManagerTest, MultiThreadTraverser3) {
+  count = 0;
+  for (int i = 0; i < 1000; i++) {
+    auto manager = gs::SystemManager::MakeFromTraverser<gs::MultiThreadTraverser>();
+
+    manager->AddSystem<CountSystem<0>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<1>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<2>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<3>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<4>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<5>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<6>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<7>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<8>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<9>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<10>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<11>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<12>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<13>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<14>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<15>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<16>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<17>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<18>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<19>>().WithThread<CountThread>();
+
+    manager->SetMaxThreadCount<CountThread>(3);
+
+    gs::EntityManager dummy;
+    manager->Update(dummy);
+  }
+  std::cout << "count: " << count << std::endl;
+  // There is a high probability that thread conflicts will occur, resulting in `count` is less than expected
+  EXPECT_LT(count, 1000 * 20);
+}
+
+// thread test
+TEST(SystemManagerTest, MultiThreadTraverser4) {
+  count = 0;
+  for (int i = 0; i < 1000; i++) {
+    auto manager = gs::SystemManager::MakeFromTraverser<gs::MultiThreadTraverser>();
+
+    manager->AddSystem<CountSystem<0>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<1>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<2>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<3>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<4>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<5>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<6>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<7>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<8>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<9>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<10>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<11>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<12>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<13>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<14>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<15>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<16>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<17>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<18>>().WithThread<CountThread>();
+    manager->AddSystem<CountSystem<19>>().WithThread<CountThread>();
+
+    manager->SetMaxThreadCount<CountThread>(1);
+
+    gs::EntityManager dummy;
+    manager->Update(dummy);
+  }
+  std::cout << "count: " << count << std::endl;
+  // If there is only one CountThread, there will be no thread conflict.
+  EXPECT_EQ(count, 1000 * 20);
+}

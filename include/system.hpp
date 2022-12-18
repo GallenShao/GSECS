@@ -25,19 +25,7 @@ gs::BaseSystem::Family gs::System<T>::GetFamily() {
 template <typename T>
 typename std::enable_if<std::is_base_of<gs::System<T>, T>::value, gs::SystemGroupBuilder>::type
 gs::SystemGroup::AddSystem() {
-  assert(editable_);
-  auto family = T::family();
-  if (all_systems_.size() <= family) {
-    all_systems_.resize(family + 1);
-  }
-  assert(all_systems_[family] == nullptr);
-  all_systems_[family] = std::make_shared<T>();
-  all_systems_mask_.set(family);
-  start_node_families_.insert(family);
-
-  std::set<BaseSystem::Family> current;
-  current.insert(family);
-  return {this, current};
+  return AddSystem(T::family(), std::move(std::make_shared<T>()));
 }
 
 template <typename T>

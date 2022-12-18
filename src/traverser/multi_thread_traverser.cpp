@@ -99,8 +99,13 @@ void gs::MultiThreadTraverser::Traverse(std::function<void(std::shared_ptr<gs::B
     }
 
     // wait until any system is done
-    std::unique_lock<std::mutex> locker(wait_thread_lock_);
-    wait_thread_condition_.wait(locker);
+    {
+      std::unique_lock<std::mutex> locker(wait_thread_lock_);
+      if (!has_any_thread_just_finished_) {
+        wait_thread_condition_.wait(locker);
+      }
+      has_any_thread_just_finished_ = false;
+    }
   }
 }
 
@@ -127,19 +132,26 @@ void gs::MultiThreadTraverser::Thread::StartLoop() {
 
       if (!has_task) {
         std::unique_lock<std::mutex> condition_locker(condition_lock_);
-        condition_.wait(condition_locker);
-        continue;
+        if (need_stop_) {
+          break;
+        }
+        if (current_task_ == nullptr) {
+          condition_.wait(condition_locker);
+          continue;
+        }
       }
 
       current_task_();
-      {
-        std::lock_guard<std::mutex> locker(traverser_->wait_thread_lock_);
-        traverser_->wait_thread_condition_.notify_all();
-      }
 
       {
         std::unique_lock<std::mutex> locker(task_lock_);
         current_task_ = nullptr;
+      }
+
+      {
+        std::lock_guard<std::mutex> locker(traverser_->wait_thread_lock_);
+        traverser_->has_any_thread_just_finished_ = true;
+        traverser_->wait_thread_condition_.notify_all();
       }
     }
 

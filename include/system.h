@@ -143,6 +143,9 @@ class SystemGroup {
 
   friend class SystemGroupBuilder;
   friend class SystemGroupBuilderItem;
+
+ private:
+  SystemGroupBuilder AddSystem(BaseSystem::Family family, std::shared_ptr<BaseSystem> system);
 };
 
 /**
@@ -263,6 +266,7 @@ class MultiThreadTraverser : public SystemTraverser {
 
   std::mutex wait_thread_lock_;
   std::condition_variable wait_thread_condition_ = {};
+  bool has_any_thread_just_finished_ = false;
 };
 
 }  // namespace gs
