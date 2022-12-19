@@ -83,7 +83,8 @@ SystemGroupBuilderItem SystemGroupBuilderItem::And(SystemGroup& group) {
 
 void SystemManager::Reset() {
   std::lock_guard<std::mutex> autoLock(locker);
-  runnable_systems_ = start_node_families_;
+  runnable_systems_.clear();
+  runnable_systems_.assign(start_node_families_.begin(), start_node_families_.end());
   system_finished_.reset();
 }
 
@@ -93,9 +94,8 @@ bool SystemManager::GetNext(std::shared_ptr<BaseSystem>& next) {
     next = nullptr;
     return all_systems_mask_ != system_finished_;
   }
-  auto iter = runnable_systems_.begin();
-  next = all_systems_[*iter];
-  runnable_systems_.erase(iter);
+  next = all_systems_[runnable_systems_.front()];
+  runnable_systems_.pop_front();
   return true;
 }
 
@@ -112,14 +112,14 @@ void SystemManager::OnSystemFinished(BaseSystem::Family family) {
     assert(next_system != nullptr);
 
     if ((system_finished_ & next_system->dependencies_) == next_system->dependencies_) {
-      runnable_systems_.insert(next_family);
+      runnable_systems_.push_back(next_family);
     }
   }
 }
 
 void SystemManager::OnSystemTryAgainLater(BaseSystem::Family family) {
   std::lock_guard<std::mutex> autoLock(locker);
-  runnable_systems_.insert(family);
+  runnable_systems_.push_back(family);
 }
 
 void SystemManager::Configure(EntityManager& entityManager) {

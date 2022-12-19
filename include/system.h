@@ -15,6 +15,7 @@
 #include <cassert>
 #include <cstdint>
 #include <functional>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -194,7 +195,7 @@ class SystemManager : public SystemGroup, public std::enable_shared_from_this<Sy
   std::shared_ptr<BaseSystem> Get(BaseSystem::Family family);
 
   std::mutex locker;
-  std::set<BaseSystem::Family> runnable_systems_;
+  std::list<BaseSystem::Family> runnable_systems_;
   std::bitset<MAX_SYSTEM_COUNT> system_finished_;
 
   std::unique_ptr<SystemTraverser> system_traverser_;
